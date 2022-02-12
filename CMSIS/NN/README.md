@@ -31,15 +31,18 @@ Group | API | Base Operator | Input Constraints | Additional memory required for
 || arm_depthwise_conv_3x3_s8() | DEPTHWISE_CONV | dilation = 1 <br/> depth_multiplier = 1 <br/> pad_x <= 1 | No|No|No| Preferred function for 3x3 kernel size for DSP extension. </br> For MVE, use arm_depthwise_conv_s8_opt()||
 | | arm_depthwise_conv_s8() | DEPTHWISE_CONV | None | No|No|No||
 || arm_depthwise_conv_s8_opt()| DEPTHWISE_CONV | dilation = 1 <br/> depth_multiplier = 1 | DSP: 2 * ker_x * ker_y * input_ch <br/> MVE: 2 * DSP + 4 | Yes| Yes| Best case is when channels are multiple of 4 or <br/>at the least >= 4 |
-||arm_convolve_wrapper_s16()|CONV|dilation = 1|n.a.| Yes | No |The additional memory required depends on the optimal convolution function called|
-||arm_convolve_s16()|CONV|dilation = 1|No| No | No ||
+||arm_convolve_wrapper_s16()|CONV|None|n.a.| Yes | No |The additional memory required depends on the optimal convolution function called|
+||arm_convolve_s16()|CONV|None|No| No | No ||
 ||arm_convolve_fast_s16()|CONV|dilation = 1, <br/> ker_x * ker_y * input_ch < 512 <br/> |4 * ker_x * ker_y * input_ch| Yes | No ||
+| arm_depthwise_conv_s16() | DEPTHWISE_CONV | None | No|No|No||
 |[Fully Connected](https://arm-software.github.io/CMSIS_5/NN/html/group__FC.html)||||| |  | |
 || arm_fully_connected_s8() |FULLY CONNECTED & <br/> MAT MUL  | None | No | Yes | Yes | |
 || arm_fully_connected_s16() |FULLY CONNECTED & <br/> MAT MUL  | None | No | Yes | No | |
 |[Pooling](https://arm-software.github.io/CMSIS_5/NN/html/group__Pooling.html)||||| |  ||
-|| arm_avgpool_s8() | AVERAGE POOL | None | input_ch * 2<br/>(DSP only) | Yes| Yes| Best case case is when channels are multiple of 4 or <br/> at the least >= 4 |
+|| arm_avgpool_s8() | AVERAGE POOL | None | input_ch * 2<br/>(DSP only) | Yes| Yes| Best case is when channels are multiple of 4 or <br/> at the least >= 4 |
+|| arm_avgpool_s16() | AVERAGE POOL | None | None | No| No| Best case is when channels are multiple of 4 or <br/> at the least >= 4 |
 || arm_maxpool_s8() | MAX POOL | None | None | Yes| Yes|  |
+|| arm_maxpool_s16() | MAX POOL | None | None | No| No|  |
 |[Softmax](https://arm-software.github.io/CMSIS_5/NN/html/group__Softmax.html)||||| |  ||
 ||arm_softmax_q7()| SOFTMAX | None | None | Yes | No | Not bit exact to TFLu but can be up to 70x faster |
 ||arm_softmax_s8()| SOFTMAX | None | None | No | Yes | Bit exact to TFLu |

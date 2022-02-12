@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (C) 2010-2021 Arm Limited or its affiliates.
+# Copyright (C) 2010-2022 Arm Limited or its affiliates.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -424,14 +424,11 @@ class ConvSettings(TestSettings):
 
         self.scaling_factors = []
 
-        if self.test_type == 'conv':
-            self.quantized_dimension = 0
-        elif self.test_type == 'depthwise_conv':
-            self.quantized_dimension = 3
+        if self.test_type == 'depthwise_conv':
             self.channel_multiplier = self.output_ch // self.input_ch
             if self.output_ch % self.input_ch != 0:
                 raise RuntimeError("out channel ({}) is not multiple of in channel ({})".format(out_ch, in_ch))
-        else:
+        elif self.test_type != 'conv':
             raise RuntimeError("Invalid test type {}".format(self.test_type))
 
     def write_c_config_header(self):
@@ -548,13 +545,22 @@ class ConvSettings(TestSettings):
 class PoolingSettings(TestSettings):
 
     def __init__(self, dataset, testtype, args, channels=8, x_in=4, y_in=4, w_x=4, w_y=4, stride_x=1, stride_y=1,
-                 batches=1, pad=False, relu6=False):
+                 randmin=INT8_MIN, randmax=INT8_MAX, batches=1, pad=False, relu6=False, out_activation_min=None,
+                 out_activation_max=None, int16xint8=False):
         super().__init__(dataset, testtype, args, channels, channels, x_in, y_in, w_x, w_y, stride_x, stride_y, pad,
-                         relu6=relu6)
+                         randmin=randmin, randmax=randmax, relu6=relu6, out_activation_min=out_activation_min,
+                         out_activation_max=out_activation_max, int16xint8=int16xint8)
 
     def generate_data(self, input_data=None):
+        if self.is_int16xint8:
+            datatype = "int16_t"
+            inttype = tf.int16
+        else:
+            datatype = "int8_t"
+            inttype = tf.int8
+
         input_data = self.get_randomized_input_data(input_data)
-        self.generate_c_array("input", input_data, datatype="int8_t")
+        self.generate_c_array("input", input_data, datatype=datatype)
 
         input_data = tf.cast(input_data, tf.float32)
 
@@ -574,7 +580,7 @@ class PoolingSettings(TestSettings):
         else:
             raise RuntimeError("Wrong test type")
 
-        interpreter = self.convert_and_interpret(model, input_data, tf.int8)
+        interpreter = self.convert_and_interpret(model, input_data, inttype)
 
         output_details = interpreter.get_output_details()
         self.set_output_dims_and_padding(output_details[0]['shape'][2], output_details[0]['shape'][1])
@@ -583,7 +589,7 @@ class PoolingSettings(TestSettings):
         interpreter.invoke()
         output_data = interpreter.get_tensor(output_details[0]["index"])
         self.generate_c_array("output_ref", np.clip(output_data, self.out_activation_min, self.out_activation_max),
-                              datatype="int8_t")
+                              datatype=datatype)
 
         self.write_c_config_header()
         self.write_c_header_wrapper()
@@ -1061,6 +1067,21 @@ def load_all_testdatasets():
                                               y_in=2, w_x=2, w_y=2, stride_x=1, stride_y=1, pad=False,
                                               out_activation_min=INT16_MIN, out_activation_max=INT16_MAX,
                                               int16xint8=True, bias_min=-0x300, bias_max=0x9fff)
+    dataset = 'int16xint8_dilation_1'
+    ALL_TESTDATA_SETS[dataset] = ConvSettings(dataset, type_of_test, args, in_ch=2, out_ch=2, x_in=32,
+                                              y_in=32, w_x=2, w_y=2, stride_x=1, stride_y=1, pad=False,
+                                              out_activation_min=INT16_MIN, out_activation_max=INT16_MAX,
+                                              int16xint8=True, bias_min=-0x300, dilation_x=2, dilation_y=2)
+    dataset = 'int16xint8_dilation_2'
+    ALL_TESTDATA_SETS[dataset] = ConvSettings(dataset, type_of_test, args, in_ch=3, out_ch=4, x_in=7,
+                                              y_in=8, w_x=2, w_y=4, stride_x=1, stride_y=1, pad=True,
+                                              randmin=INT16_MIN, randmax=INT16_MAX, out_activation_min=-13335,
+                                              out_activation_max=32767, int16xint8=True, dilation_x=2, dilation_y=2)
+    dataset = 'int16xint8_dilation_3'
+    ALL_TESTDATA_SETS[dataset] = ConvSettings(dataset, type_of_test, args, in_ch=3, out_ch=4, x_in=7,
+                                              y_in=8, w_x=2, w_y=4, stride_x=1, stride_y=1, pad=True,
+                                              randmin=INT16_MIN, randmax=INT16_MAX, out_activation_min=-13335,
+                                              out_activation_max=32767, int16xint8=True, dilation_x=2)
 
     type_of_test = 'depthwise_conv'
     dataset = 'depthwise_2'
@@ -1096,6 +1117,21 @@ def load_all_testdatasets():
                                               w_y=4, stride_x=2, stride_y=2, pad=True,
                                               out_activation_min=-70, out_activation_max=127, dilation_x=2,
                                               dilation_y=3)
+    dataset = 'dw_int16xint8'
+    ALL_TESTDATA_SETS[dataset] = ConvSettings(dataset, type_of_test, args, in_ch=4, out_ch=8, x_in=9, y_in=5, w_x=3,
+                                              w_y=4, stride_x=3, stride_y=2, pad=True, randmin=INT16_MIN,
+                                              randmax=INT16_MAX, out_activation_min=-21111,
+                                              out_activation_max=32767, int16xint8=True)
+    dataset = 'dw_int16xint8_dilation'
+    ALL_TESTDATA_SETS[dataset] = ConvSettings(dataset, type_of_test, args, in_ch=4, out_ch=8, x_in=9, y_in=5, w_x=4,
+                                              w_y=4, stride_x=1, stride_y=1, pad=True, randmin=INT16_MIN,
+                                              randmax=INT16_MAX, out_activation_min=-32700, dilation_x=3, dilation_y=2,
+                                              out_activation_max=32767, int16xint8=True)
+    dataset = 'dw_int16xint8_mult4'
+    ALL_TESTDATA_SETS[dataset] = ConvSettings(dataset, type_of_test, args, in_ch=2, out_ch=8, x_in=4, y_in=5, w_x=3,
+                                              w_y=4, stride_x=3, stride_y=2, pad=False, randmin=INT16_MIN,
+                                              randmax=INT16_MAX, out_activation_min=-32767,
+                                              out_activation_max=32767, int16xint8=True)
 
     type_of_test = 'fully_connected'
     dataset = 'fully_connected'
@@ -1122,6 +1158,10 @@ def load_all_testdatasets():
     ALL_TESTDATA_SETS[dataset] = FullyConnectedSettings(dataset, type_of_test, args, in_ch=7, out_ch=11, x_in=10,
                                                         y_in=10, batches=3, out_activation_min=-1444,
                                                         out_activation_max=32767, int16xint8=True)
+    dataset = 'fc_int16_slow'
+    ALL_TESTDATA_SETS[dataset] = FullyConnectedSettings(dataset, type_of_test, args, in_ch=7, out_ch=11, x_in=10,
+                                                        y_in=8, batches=3, randmin=(INT16_MAX-100), randmax=INT16_MAX,
+                                                        int16xint8=True)
 
     type_of_test = 'avgpool'
     dataset = 'avgpooling'
@@ -1142,6 +1182,10 @@ def load_all_testdatasets():
     dataset = 'avgpooling_5'
     ALL_TESTDATA_SETS[dataset] = PoolingSettings(dataset, type_of_test, args, channels=1, x_in=3, y_in=3,
                                                  stride_x=1, stride_y=1, w_x=1, w_y=3, pad=True, relu6=True)
+    dataset = 'avgpooling_int16'
+    ALL_TESTDATA_SETS[dataset] = PoolingSettings(dataset, type_of_test, args, channels=2, x_in=6, y_in=4,
+                                                 stride_x=2, stride_y=1, w_x=2, w_y=3, pad=True,
+                                                 randmin=INT16_MIN, randmax=INT16_MAX, int16xint8=True)
 
     type_of_test = 'maxpool'
     dataset = 'maxpooling'
@@ -1168,6 +1212,21 @@ def load_all_testdatasets():
     dataset = 'maxpooling_7'
     ALL_TESTDATA_SETS[dataset] = PoolingSettings(dataset, type_of_test, args, channels=1, x_in=4, y_in=2, stride_x=2,
                                                  stride_y=2, w_x=2, w_y=2, pad=False, relu6=True)
+    dataset = 'maxpool_int16'
+    ALL_TESTDATA_SETS[dataset] = PoolingSettings(dataset, type_of_test, args, channels=2, x_in=4, y_in=3, stride_x=2,
+                                                 stride_y=2, w_x=2, w_y=2, pad=False, randmin=INT16_MIN,
+                                                 randmax=INT16_MAX, int16xint8=True)
+    dataset = 'maxpool_int16_1'
+    ALL_TESTDATA_SETS[dataset] = PoolingSettings(dataset, type_of_test, args, channels=2, x_in=4, y_in=5, stride_x=2,
+                                                 stride_y=1, w_x=3, w_y=3, pad=True, randmin=INT16_MIN,
+                                                 randmax=INT16_MAX, out_activation_min=-30000, out_activation_max=30000,
+                                                 int16xint8=True)
+    dataset = 'maxpool_int16_2'
+    ALL_TESTDATA_SETS[dataset] = PoolingSettings(dataset, type_of_test, args, channels=3, x_in=7, y_in=7, stride_x=1,
+                                                 stride_y=1, w_x=3, w_y=3, pad=False, randmin=INT16_MIN,
+                                                 randmax=INT16_MAX, out_activation_min=-30000, out_activation_max=30000,
+                                                 int16xint8=True)
+
     type_of_test = 'softmax'
     dataset = 'softmax'
     ALL_TESTDATA_SETS[dataset] = SoftmaxSettings(dataset, type_of_test, args, x_in=5, y_in=1)
@@ -1232,4 +1291,10 @@ if __name__ == '__main__':
                 generator = FullyConnectedSettings(testdataset, test_type, args)
             elif args.testtype == 'avgpool' or args.testtype == 'maxpool':
                 generator = PoolingSettings(testdataset, test_type, args)
+            elif args.testtype == 'softmax':
+                generator = SoftmaxSettings(testdataset, test_type, args)
+            elif args.testtype == 'svdf':
+                generator = SVDFSettings(testdataset, test_type, args)
+            else:
+                raise RuntimeError("Please specify type of test with -t")
         generator.generate_data()
