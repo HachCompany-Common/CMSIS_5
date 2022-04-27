@@ -21,8 +21,8 @@
  * Title:        arm_nnsupportfunctions.h
  * Description:  Public header file of support functions for CMSIS NN Library
  *
- * $Date:        7. February 2022
- * $Revision:    V.6.1.0
+ * $Date:        19. April 2022
+ * $Revision:    V.7.0.1
  *
  * Target Processor:  Cortex-M CPUs
  * -------------------------------------------------------------------- */
@@ -32,6 +32,8 @@
 
 #include "arm_nn_math_types.h"
 #include "arm_nn_types.h"
+
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -385,6 +387,8 @@ arm_status arm_nn_mat_mult_nt_t_s8(const q7_t *lhs,
  * @param[in]      rhs_rows        Number of rows in the right-hand side input matrix
  * @param[in]      activation_min  Minimum value to clamp the output to. Range: int8
  * @param[in]      activation_max  Maximum value to clamp the output to. Range: int8
+ * @param[in]      address_offset  Memory position offset for dst. First output is stored at 'dst', the
+ *                                 second at 'dst + address_offset' and so on. Default value is typically 1.
  *
  * @return         The function returns <code>ARM_MATH_SUCCESS</code>
  *
@@ -401,7 +405,8 @@ arm_status arm_nn_vec_mat_mult_t_s8(const q7_t *lhs,
                                     const int32_t rhs_cols,
                                     const int32_t rhs_rows,
                                     const int32_t activation_min,
-                                    const int32_t activation_max);
+                                    const int32_t activation_max,
+                                    const int32_t address_offset);
 
 /**
  * @brief s16 Vector by Matrix (transposed) multiplication
@@ -548,6 +553,29 @@ q7_t *arm_nn_depthwise_conv_nt_t_s8(const q7_t *lhs,
                                     q7_t *out);
 
 /**
+ *@brief Matrix-multiplication function for convolution with reordered columns
+ *@param[in]       pA          pointer to operand A
+ *@param[in]       pInBuffer   pointer to operand B, always conssists of 2 vectors
+ *@param[in]       ch_im_out   numRow of A
+ *@param[in]       numCol_A    numCol of A
+ *@param[in]       bias_shift  amount of left-shift for bias
+ *@param[in]       out_shift   amount of right-shift for output
+ *@param[in]       bias        the bias
+ *@param[in,out]   pOut        pointer to output
+ *@return     The function returns the incremented output pointer
+ *
+ *@details  This function assumes that data in pInBuffer are reordered
+ */
+q7_t *arm_nn_mat_mult_kernel_q7_q15_reordered(const q7_t *pA,
+                                              const q15_t *pInBuffer,
+                                              const uint16_t ch_im_out,
+                                              const uint16_t numCol_A,
+                                              const uint16_t bias_shift,
+                                              const uint16_t out_shift,
+                                              const q7_t *bias,
+                                              q7_t *pOut);
+
+/**
   @brief         Read 2 q15 elements and post increment pointer.
   @param[in]     in_q15   Pointer to pointer that holds address of input.
   @return        q31 value
@@ -626,7 +654,7 @@ __STATIC_FORCEINLINE void arm_memset_q7(q7_t *dst, const q7_t val, uint32_t bloc
     __asm volatile("   vdup.8                  q0, %[set_val]             \n"
                    "   wlstp.8                 lr, %[cnt], 1f             \n"
                    "2:                                                    \n"
-                   "   vstrb.8                 q0, [%[in]], 16            \n"
+                   "   vstrb.8                 q0, [%[in]], #16            \n"
                    "   letp                    lr, 2b                     \n"
                    "1:                                                    \n"
                    : [ in ] "+r"(dst)
@@ -777,6 +805,30 @@ q7_t *arm_nn_mat_mult_kernel_s8_s16(const q7_t *input_a,
                                     q7_t *out_0);
 
 /**
+ * @brief Common softmax function for s8 input and s8 or s16 output
+ * @param[in]  input          Pointer to the input tensor
+ * @param[in]  num_rows       Number of rows in the input tensor
+ * @param[in]  row_size       Number of elements in each input row
+ * @param[in]  mult           Input quantization multiplier
+ * @param[in]  shift          Input quantization shift within the range [0, 31]
+ * @param[in]  diff_min       Minimum difference with max in row. Used to check if
+ *                            the quantized exponential operation can be performed
+ * @param[in]  int16_output   Indicating s8 output if 0 else s16 output
+ * @param[out] output         Pointer to the output tensor
+ *
+ * @note Supported framework: TensorFlow Lite micro (bit-accurate)
+ *
+ */
+void arm_nn_softmax_common_s8(const int8_t *input,
+                              const int32_t num_rows,
+                              const int32_t row_size,
+                              const int32_t mult,
+                              const int32_t shift,
+                              const int32_t diff_min,
+                              const bool int16_output,
+                              void *output);
+
+/**
  * @brief macro for adding rounding offset
  */
 #ifndef ARM_NN_TRUNCATE
@@ -919,10 +971,10 @@ __STATIC_FORCEINLINE q31_t arm_nn_requantize(const q31_t val, const q31_t multip
 
 /**
  * @brief           Requantize a given 64 bit value.
- * @param[in]       val                 Value to be requantized
- * @param[in]       reduced_multiplier  Reduced multiplier from range {NN_Q31_MIN + 1, Q32_MAX} to {Q16_MIN + 1,
+ * @param[in]       val                 Value to be requantized in the range {-(1<<47)} to {(1<<47) - 1}
+ * @param[in]       reduced_multiplier  Reduced multiplier in the range {NN_Q31_MIN + 1, Q32_MAX} to {Q16_MIN + 1,
  * Q16_MAX}
- * @param[in]       shift               left or right shift for 'val * multiplier'
+ * @param[in]       shift               Left or right shift for 'val * multiplier' in the range {-31} to {7}
  *
  * @return          Returns (val * multiplier)/(2 ^ shift)
  *
@@ -949,8 +1001,8 @@ __STATIC_FORCEINLINE void arm_memcpy_q7(q7_t *__RESTRICT dst, const q7_t *__REST
 #if defined(ARM_MATH_MVEI)
     __asm volatile("   wlstp.8                 lr, %[cnt], 1f             \n"
                    "2:                                                    \n"
-                   "   vldrb.8                 q0, [%[in]], 16            \n"
-                   "   vstrb.8                 q0, [%[out]], 16           \n"
+                   "   vldrb.8                 q0, [%[in]], #16            \n"
+                   "   vstrb.8                 q0, [%[out]], #16           \n"
                    "   letp                    lr, 2b                     \n"
                    "1:                                                    \n"
                    : [ in ] "+r"(src), [ out ] "+r"(dst)

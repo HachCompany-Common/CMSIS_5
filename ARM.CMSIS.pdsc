@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package schemaVersion="1.3" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="PACK.xsd">
+<package schemaVersion="1.7.7" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="https://raw.githubusercontent.com/Open-CMSIS-Pack/Open-CMSIS-Pack-Spec/v1.7.7/schema/PACK.xsd">
   <name>CMSIS</name>
   <description>CMSIS (Common Microcontroller Software Interface Standard)</description>
   <vendor>ARM</vendor>
@@ -8,10 +8,12 @@
   <url>http://www.keil.com/pack/</url>
 
   <releases>
-    <release version="5.8.1">
+    <release version="5.9.0">
       Active development ...
       CMSIS-Core(M): 5.6.0
+       - Arm Cortex-M85 cpu support
        - Arm China STAR-MC1 cpu support
+       - Updated system_ARMCM55.c
       CMSIS-DSP: 1.10.0 (see revision history for details)
       CMSIS-NN: 3.1.0 (see revision history for details)
        - Support for int16 convolution and fully connected for reference implementation
@@ -21,8 +23,19 @@
        - Support for int16 depthwise conv for reference implementation including dilation
        - Support for int16 average and max pooling for reference implementation
        - Support for elementwise add and mul int16 scalar version
-      CMSIS-RTOS2:
+       - Support for softmax int16 scalar version
+       - Support for SVDF with 8 bit state tensor
+      CMSIS-RTOS2: 2.1.3 (unchanged)
         - RTX 5.5.4 (see revision history for details)
+      CMSIS-Pack: deprecated (moved to Open-CMSIS-Pack)
+      CMSIS-SVD: 1.3.9 (see revision history for details)
+      CMSIS-DAP: 2.1.1 (see revision history for details)
+       - Allow default clock frequency to use fast clock mode
+      Devices
+       - Support for Cortex-M85
+      Utilities
+        - SVDConv 3.3.42
+        - PackChk 1.3.95
     </release>
     <release version="5.8.0" date="2021-06-24">
       CMSIS-Core(M): 5.5.0 (see revision history for details)
@@ -686,6 +699,32 @@ The Cortex-M55 processor achieves high compute performance across scalar and vec
       </device>
     </family>
 
+    <!-- ******************************  Cortex-M85  ****************************** -->
+    <family Dfamily="ARM Cortex M85" Dvendor="ARM:82">
+      <!--book name="Device/ARM/Documents/Arm Cortex-M85 Processor Datasheet.pdf" title="Arm Cortex-M85 Processor Datasheet"/-->
+      <description>
+The Arm Cortex-M85 processor is a fully synthesizable high-performance microcontroller class processor that implements the Armv8.1-M Mainline architecture which includes support for the M-profile Vector Extension (MVE).
+The processor also supports previous Armv8-M architectural features.
+The design is focused on compute applications such as Digital Signal Processing (DSP) and machine learning.
+The Arm Cortex-M85 processor is energy efficient and achieves high compute performance across scalar and vector operations while maintaining low power consumption.
+      </description>
+
+      <!-- debug svd="Device/ARM/SVD/ARMCM85.svd"/ SVD files do not contain any peripheral -->
+      <memory name="ROM_NS" access="rxn"  start="0x00000000" size="0x00200000" startup="1" default="1" alias="ROM_S"/>
+      <memory name="RAM_NS" access="rwxn" start="0x20000000" size="0x00020000" init   ="0" default="1" alias="RAM_S"/>
+      <memory name="ROM_S"  access="rxn"  start="0x10000000" size="0x00200000" startup="1" default="1"/>
+      <memory name="RAM_S"  access="rwxn" start="0x30000000" size="0x00020000" init   ="0" default="1"/>
+      <!--algorithm name="Device/ARM/Flash/NEW_DEVICE.FLM" start="0x00000000" size="0x00040000"             default="1"/-->
+
+      <device Dname="ARMCM85">
+        <processor Dcore="Cortex-M85" DcoreVersion="r0p0" Dpacbti="PACBTI" Dmpu="MPU" Dfpu="DP_FPU" Dmve="FP_MVE" Ddsp="DSP" Dtz="TZ" Dendian="Configurable" Dclock="10000000"/>
+        <description>
+          Floating Point Vector Extensions, DSP Instructions, Double Precision Floating Point Unit, TrustZone, PACBTI
+        </description>
+        <compile header="Device/ARM/ARMCM85/Include/ARMCM85.h" define="ARMCM85"/>
+      </device>
+    </family>
+
     <!-- ******************************  ARMSC000  ****************************** -->
     <family Dfamily="ARM SC000" Dvendor="ARM:82">
       <description>
@@ -1082,16 +1121,26 @@ and 8-bit Java bytecodes in Jazelle state.
     <condition id="ARMv8-MML Device">
       <description>Armv8-M main line architecture based device</description>
       <accept Dcore="ARMV8MML"/>
-      <accept Dcore="ARMV81MML"/>
       <accept Dcore="Cortex-M33"/>
       <accept Dcore="Cortex-M35P"/>
-      <accept Dcore="Cortex-M55"/>
       <accept Dcore="Star-MC1"/>
+    </condition>
+    <condition id="ARMv81-MML Device">
+      <description>Armv8.1-M main line architecture based device</description>
+      <accept Dcore="ARMV81MML"/>
+      <accept Dcore="Cortex-M55"/>
+      <accept Dcore="Cortex-M85"/>
+    </condition>    
+    <condition id="ARMv8x-MML Device">
+      <description>Armv8-M/Armv8.1-M architecture based device</description>
+      <accept condition="ARMv8-MML Device"/>
+      <accept condition="ARMv81-MML Device"/>
     </condition>
     <condition id="ARMv8-M Device">
       <description>Armv8-M architecture based device</description>
       <accept condition="ARMv8-MBL Device"/>
       <accept condition="ARMv8-MML Device"/>
+      <accept condition="ARMv81-MML Device"/>
     </condition>
     <condition id="ARMv6_7-M Device">
       <description>Armv6_7-M architecture based device</description>
@@ -1197,6 +1246,12 @@ and 8-bit Java bytecodes in Jazelle state.
     <condition id="ARMCM55 CMSIS">
       <description>Generic Arm Cortex-M55 device startup and depends on CMSIS Core</description>
       <require Dvendor="ARM:82" Dname="ARMCM55*"/>
+      <require Cclass="CMSIS" Cgroup="CORE"/>
+    </condition>
+
+    <condition id="ARMCM85 CMSIS">
+      <description>Generic Arm Cortex-M85 device startup and depends on CMSIS Core</description>
+      <require Dvendor="ARM:82" Dname="ARMCM85*"/>
       <require Cclass="CMSIS" Cgroup="CORE"/>
     </condition>
 
@@ -1358,17 +1413,17 @@ and 8-bit Java bytecodes in Jazelle state.
         <require Dendian="Little-endian"/>
     </condition>
     <condition id="ARMCC ARMv8-MML NOFP LE">
-        <description>Arm Compiler for Armv8-M main line architecture without FPU/MVE (little endian)</description>
+        <description>Arm Compiler for Armv8-M/Armv8.1-M main line architecture without FPU/MVE (little endian)</description>
         <require condition="ARMCC"/>
-        <require condition="ARMv8-MML Device"/>
+        <require condition="ARMv8x-MML Device"/>
         <require Dendian="Little-endian"/>
         <require Dfpu="NO_FPU"/>
         <require Dmve="NO_MVE"/>
     </condition>
      <condition id="ARMCC ARMv8-MML FP LE">
-        <description>Arm Compiler for Armv8-M main line architecture with FPU/MVE (little endian)</description>
+        <description>Arm Compiler for Armv8-M/Armv8.1-M main line architecture with FPU/MVE (little endian)</description>
         <require condition="ARMCC"/>
-        <require condition="ARMv8-MML Device"/>
+        <require condition="ARMv8x-MML Device"/>
         <require Dendian="Little-endian"/>
         <accept Dfpu="SP_FPU"/>
         <accept Dfpu="DP_FPU"/>
@@ -1425,17 +1480,17 @@ and 8-bit Java bytecodes in Jazelle state.
         <require Dendian="Little-endian"/>
     </condition>
     <condition id="GCC ARMv8-MML NOFP LE">
-        <description>GNU Compiler for Armv8-M main line architecture without FPU/MVE (little endian)</description>
+        <description>GNU Compiler for Armv8-M/Armv8.1-M main line architecture without FPU/MVE (little endian)</description>
         <require condition="GCC"/>
-        <require condition="ARMv8-MML Device"/>
+        <require condition="ARMv8x-MML Device"/>
         <require Dendian="Little-endian"/>
         <require Dfpu="NO_FPU"/>
         <require Dmve="NO_MVE"/>
     </condition>
      <condition id="GCC ARMv8-MML FP LE">
-        <description>GNU Compiler for Armv8-M main line architecture with FPU/MVE (little endian)</description>
+        <description>GNU Compiler for Armv8-M/Armv8.1-M main line architecture with FPU/MVE (little endian)</description>
         <require condition="GCC"/>
-        <require condition="ARMv8-MML Device"/>
+        <require condition="ARMv8x-MML Device"/>
         <require Dendian="Little-endian"/>
         <accept Dfpu="SP_FPU"/>
         <accept Dfpu="DP_FPU"/>
@@ -1492,17 +1547,32 @@ and 8-bit Java bytecodes in Jazelle state.
         <require Dendian="Little-endian"/>
     </condition>
     <condition id="IARCC ARMv8-MML NOFP LE">
-        <description>IAR Compiler for Armv8-M main line architecture without FPU/MVE (little endian)</description>
+        <description>IAR Compiler for Armv8-M main line architecture without FPU (little endian)</description>
         <require condition="IAR"/>
         <require condition="ARMv8-MML Device"/>
         <require Dendian="Little-endian"/>
         <require Dfpu="NO_FPU"/>
-        <require Dmve="NO_MVE"/>
     </condition>
-     <condition id="IARCC ARMv8-MML FP LE">
-        <description>IAR Compiler for Armv8-M main line architecture with FPU/MVE (little endian)</description>
+    <condition id="IARCC ARMv8-MML FP LE">
+        <description>IAR Compiler for Armv8-M main line architecture with FPU (little endian)</description>
         <require condition="IAR"/>
         <require condition="ARMv8-MML Device"/>
+        <require Dendian="Little-endian"/>
+        <accept Dfpu="SP_FPU"/>
+        <accept Dfpu="DP_FPU"/>
+    </condition>
+    <condition id="IARCC ARMv81-MML NOFP LE">
+        <description>IAR Compiler for Armv8.1-M main line architecture without FPU/MVE (little endian)</description>
+        <require condition="IAR"/>
+        <require condition="ARMv81-MML Device"/>
+        <require Dendian="Little-endian"/>
+        <require Dfpu="NO_FPU"/>
+        <require Dmve="NO_MVE"/>
+    </condition>
+     <condition id="IARCC ARMv81-MML FP LE">
+        <description>IAR Compiler for Armv8.1-M main line architecture with FPU/MVE (little endian)</description>
+        <require condition="IAR"/>
+        <require condition="ARMv81-MML Device"/>
         <require Dendian="Little-endian"/>
         <accept Dfpu="SP_FPU"/>
         <accept Dfpu="DP_FPU"/>
@@ -1550,9 +1620,9 @@ and 8-bit Java bytecodes in Jazelle state.
         <require condition="ARMv8-MBL Device"/>
     </condition>
     <condition id="GNUASM ARMv8-MML">
-        <description>GNU Assembler for Armv8-M main line architecture</description>
+        <description>GNU Assembler for Armv8-M/Armv8.1-M main line architecture</description>
         <require condition="ARMCC GCC"/>
-        <require condition="ARMv8-MML Device"/>
+        <require condition="ARMv8x-MML Device"/>
     </condition>
     <condition id="IARASM ARMv8-MBL">
         <description>IAR Assembler for Armv8-M base line architecture</description>
@@ -1562,7 +1632,7 @@ and 8-bit Java bytecodes in Jazelle state.
     <condition id="IARASM ARMv8-MML">
         <description>IAR Assembler for Armv8-M main line architecture</description>
         <require condition="IAR"/>
-        <require condition="ARMv8-MML Device"/>
+        <require condition="ARMv8x-MML Device"/>
     </condition>
 
     <condition id="ARMASM ARMv7-A">
@@ -1904,9 +1974,26 @@ and 8-bit Java bytecodes in Jazelle state.
         <file category="linkerScript" name="Device/ARM/ARMCM55/Source/ARM/ARMCM55_ac6_s.sct"         version="1.1.0" attr="config" condition="Startup ARMCC6 Secure"/>
         <file category="linkerScript" name="Device/ARM/ARMCM55/Source/ARM/ARMCM55_ac6.sct"           version="1.1.0" attr="config" condition="Startup ARMCC6 Unsecure"/>
         <file category="linkerScript" name="Device/ARM/ARMCM55/Source/GCC/gcc_arm.ld"                version="2.2.0" attr="config" condition="GCC"/>
-        <file category="sourceC"      name="Device/ARM/ARMCM55/Source/system_ARMCM55.c"              version="1.0.1" attr="config"/>
+        <file category="sourceC"      name="Device/ARM/ARMCM55/Source/system_ARMCM55.c"              version="1.1.0" attr="config"/>
         <!-- SAU configuration -->
         <file category="header"       name="Device/ARM/ARMCM55/Include/Template/partition_ARMCM55.h" version="1.0.0" attr="config" condition="TZ Secure"/>
+      </files>
+    </component>
+
+    <!-- Cortex-M85 -->
+    <component Cclass="Device" Cgroup="Startup" Cvariant="C Startup" Cversion="1.0.0" condition="ARMCM85 CMSIS" isDefaultVariant="true">
+      <description>System and Startup for Generic Cortex-M85 device</description>
+      <files>
+        <!-- include folder / device header file -->
+        <file category="include"      name="Device/ARM/ARMCM85/Include/"/>
+        <!-- startup / system file -->
+        <file category="sourceC"      name="Device/ARM/ARMCM85/Source/startup_ARMCM85.c"             version="1.0.0" attr="config"/>
+        <file category="linkerScript" name="Device/ARM/ARMCM85/Source/ARM/ARMCM85_ac6_s.sct"         version="1.0.0" attr="config" condition="Startup ARMCC6 Secure"/>
+        <file category="linkerScript" name="Device/ARM/ARMCM85/Source/ARM/ARMCM85_ac6.sct"           version="1.0.0" attr="config" condition="Startup ARMCC6 Unsecure"/>
+        <file category="linkerScript" name="Device/ARM/ARMCM85/Source/GCC/gcc_arm.ld"                version="1.0.0" attr="config" condition="GCC"/>
+        <file category="sourceC"      name="Device/ARM/ARMCM85/Source/system_ARMCM85.c"              version="1.0.0" attr="config"/>
+        <!-- SAU configuration -->
+        <file category="header"       name="Device/ARM/ARMCM85/Include/Template/partition_ARMCM85.h" version="1.0.0" attr="config" condition="TZ Secure"/>
       </files>
     </component>
 
@@ -2140,7 +2227,7 @@ and 8-bit Java bytecodes in Jazelle state.
     </component>
 
     <!-- CMSIS-DSP component -->
-    <component Cclass="CMSIS" Cgroup="DSP" Cvariant="Source"  Cversion="1.10.0-dev" isDefaultVariant="true" condition="CMSIS DSP">
+    <component Cclass="CMSIS" Cgroup="DSP" Cvariant="Source"  Cversion="1.10.0" isDefaultVariant="true" condition="CMSIS DSP">
       <description>CMSIS-DSP Library for Cortex-M, SC000, and SC300</description>
       <files>
         <!-- CPU independent -->
@@ -2197,7 +2284,7 @@ and 8-bit Java bytecodes in Jazelle state.
     </component>
 
     <!-- CMSIS-NN component -->
-    <component Cclass="CMSIS" Cgroup="NN Lib" Cversion="3.0.0" condition="CMSIS NN">
+    <component Cclass="CMSIS" Cgroup="NN Lib" Cversion="3.1.0" condition="CMSIS NN">
       <description>CMSIS-NN Neural Network Library</description>
       <files>
         <file category="doc" name="CMSIS/Documentation/NN/html/index.html"/>
@@ -2240,6 +2327,7 @@ and 8-bit Java bytecodes in Jazelle state.
         <file category="source" name="CMSIS/NN/Source/ConcatenationFunctions/arm_concatenation_s8_y.c"/>
         <file category="source" name="CMSIS/NN/Source/ConcatenationFunctions/arm_concatenation_s8_z.c"/>
         <file category="source" name="CMSIS/NN/Source/SVDFunctions/arm_svdf_s8.c"/>
+        <file category="source" name="CMSIS/NN/Source/SVDFunctions/arm_svdf_state_s16_s8.c"/>
         <file category="source" name="CMSIS/NN/Source/PoolingFunctions/arm_max_pool_s8.c"/>
         <file category="source" name="CMSIS/NN/Source/PoolingFunctions/arm_max_pool_s16.c"/>
         <file category="source" name="CMSIS/NN/Source/PoolingFunctions/arm_avgpool_s8.c"/>
@@ -2283,6 +2371,8 @@ and 8-bit Java bytecodes in Jazelle state.
         <file category="source" name="CMSIS/NN/Source/FullyConnectedFunctions/arm_fully_connected_mat_q7_vec_q15.c"/>
         <file category="source" name="CMSIS/NN/Source/SoftmaxFunctions/arm_softmax_q15.c"/>
         <file category="source" name="CMSIS/NN/Source/SoftmaxFunctions/arm_softmax_s8.c"/>
+        <file category="source" name="CMSIS/NN/Source/SoftmaxFunctions/arm_softmax_s8_s16.c"/>
+        <file category="source" name="CMSIS/NN/Source/SoftmaxFunctions/arm_softmax_s16.c"/>
         <file category="source" name="CMSIS/NN/Source/SoftmaxFunctions/arm_softmax_u8.c"/>
         <file category="source" name="CMSIS/NN/Source/SoftmaxFunctions/arm_softmax_q7.c"/>
         <file category="source" name="CMSIS/NN/Source/SoftmaxFunctions/arm_softmax_with_batch_q7.c"/>
@@ -2434,26 +2524,28 @@ and 8-bit Java bytecodes in Jazelle state.
 
         <!-- RTX libraries (CPU and Compiler dependent) -->
         <!-- ARMCC -->
-        <file category="library" condition="ARMCC ARMv6-M LE"        name="CMSIS/RTOS2/RTX/Library/ARM/RTX_CM0.lib"    src="CMSIS/RTOS2/RTX/Source"/>
-        <file category="library" condition="ARMCC ARMv7-M NOFP LE"   name="CMSIS/RTOS2/RTX/Library/ARM/RTX_CM3.lib"    src="CMSIS/RTOS2/RTX/Source"/>
-        <file category="library" condition="ARMCC ARMv7-M FP LE"     name="CMSIS/RTOS2/RTX/Library/ARM/RTX_CM4F.lib"   src="CMSIS/RTOS2/RTX/Source"/>
-        <file category="library" condition="ARMCC ARMv8-MBL LE"      name="CMSIS/RTOS2/RTX/Library/ARM/RTX_V8MB.lib"   src="CMSIS/RTOS2/RTX/Source"/>
-        <file category="library" condition="ARMCC ARMv8-MML NOFP LE" name="CMSIS/RTOS2/RTX/Library/ARM/RTX_V8MM.lib"   src="CMSIS/RTOS2/RTX/Source"/>
-        <file category="library" condition="ARMCC ARMv8-MML FP LE"   name="CMSIS/RTOS2/RTX/Library/ARM/RTX_V8MMF.lib"  src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="ARMCC ARMv6-M LE"         name="CMSIS/RTOS2/RTX/Library/ARM/RTX_CM0.lib"    src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="ARMCC ARMv7-M NOFP LE"    name="CMSIS/RTOS2/RTX/Library/ARM/RTX_CM3.lib"    src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="ARMCC ARMv7-M FP LE"      name="CMSIS/RTOS2/RTX/Library/ARM/RTX_CM4F.lib"   src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="ARMCC ARMv8-MBL LE"       name="CMSIS/RTOS2/RTX/Library/ARM/RTX_V8MB.lib"   src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="ARMCC ARMv8-MML NOFP LE"  name="CMSIS/RTOS2/RTX/Library/ARM/RTX_V8MM.lib"   src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="ARMCC ARMv8-MML FP LE"    name="CMSIS/RTOS2/RTX/Library/ARM/RTX_V8MMF.lib"  src="CMSIS/RTOS2/RTX/Source"/>
         <!-- GCC -->
-        <file category="library" condition="GCC ARMv6-M LE"          name="CMSIS/RTOS2/RTX/Library/GCC/libRTX_CM0.a"   src="CMSIS/RTOS2/RTX/Source"/>
-        <file category="library" condition="GCC ARMv7-M NOFP LE"     name="CMSIS/RTOS2/RTX/Library/GCC/libRTX_CM3.a"   src="CMSIS/RTOS2/RTX/Source"/>
-        <file category="library" condition="GCC ARMv7-M FP LE"       name="CMSIS/RTOS2/RTX/Library/GCC/libRTX_CM4F.a"  src="CMSIS/RTOS2/RTX/Source"/>
-        <file category="library" condition="GCC ARMv8-MBL LE"        name="CMSIS/RTOS2/RTX/Library/GCC/libRTX_V8MB.a"  src="CMSIS/RTOS2/RTX/Source"/>
-        <file category="library" condition="GCC ARMv8-MML NOFP LE"   name="CMSIS/RTOS2/RTX/Library/GCC/libRTX_V8MM.a"  src="CMSIS/RTOS2/RTX/Source"/>
-        <file category="library" condition="GCC ARMv8-MML FP LE"     name="CMSIS/RTOS2/RTX/Library/GCC/libRTX_V8MMF.a" src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="GCC ARMv6-M LE"           name="CMSIS/RTOS2/RTX/Library/GCC/libRTX_CM0.a"   src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="GCC ARMv7-M NOFP LE"      name="CMSIS/RTOS2/RTX/Library/GCC/libRTX_CM3.a"   src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="GCC ARMv7-M FP LE"        name="CMSIS/RTOS2/RTX/Library/GCC/libRTX_CM4F.a"  src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="GCC ARMv8-MBL LE"         name="CMSIS/RTOS2/RTX/Library/GCC/libRTX_V8MB.a"  src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="GCC ARMv8-MML NOFP LE"    name="CMSIS/RTOS2/RTX/Library/GCC/libRTX_V8MM.a"  src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="GCC ARMv8-MML FP LE"      name="CMSIS/RTOS2/RTX/Library/GCC/libRTX_V8MMF.a" src="CMSIS/RTOS2/RTX/Source"/>
         <!-- IAR -->
-        <file category="library" condition="IARCC ARMv6-M LE"        name="CMSIS/RTOS2/RTX/Library/IAR/RTX_CM0.a"      src="CMSIS/RTOS2/RTX/Source"/>
-        <file category="library" condition="IARCC ARMv7-M NOFP LE"   name="CMSIS/RTOS2/RTX/Library/IAR/RTX_CM3.a"      src="CMSIS/RTOS2/RTX/Source"/>
-        <file category="library" condition="IARCC ARMv7-M FP LE"     name="CMSIS/RTOS2/RTX/Library/IAR/RTX_CM4F.a"     src="CMSIS/RTOS2/RTX/Source"/>
-        <file category="library" condition="IARCC ARMv8-MBL LE"      name="CMSIS/RTOS2/RTX/Library/IAR/RTX_V8MB.a"     src="CMSIS/RTOS2/RTX/Source"/>
-        <file category="library" condition="IARCC ARMv8-MML NOFP LE" name="CMSIS/RTOS2/RTX/Library/IAR/RTX_V8MM.a"     src="CMSIS/RTOS2/RTX/Source"/>
-        <file category="library" condition="IARCC ARMv8-MML FP LE"   name="CMSIS/RTOS2/RTX/Library/IAR/RTX_V8MMF.a"    src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="IARCC ARMv6-M LE"         name="CMSIS/RTOS2/RTX/Library/IAR/RTX_CM0.a"      src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="IARCC ARMv7-M NOFP LE"    name="CMSIS/RTOS2/RTX/Library/IAR/RTX_CM3.a"      src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="IARCC ARMv7-M FP LE"      name="CMSIS/RTOS2/RTX/Library/IAR/RTX_CM4F.a"     src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="IARCC ARMv8-MBL LE"       name="CMSIS/RTOS2/RTX/Library/IAR/RTX_V8MB.a"     src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="IARCC ARMv8-MML NOFP LE"  name="CMSIS/RTOS2/RTX/Library/IAR/RTX_V8MM.a"     src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="IARCC ARMv8-MML FP LE"    name="CMSIS/RTOS2/RTX/Library/IAR/RTX_V8MMF.a"    src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="IARCC ARMv81-MML NOFP LE" name="CMSIS/RTOS2/RTX/Library/IAR/RTX_V81MM.a"    src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="IARCC ARMv81-MML FP LE"   name="CMSIS/RTOS2/RTX/Library/IAR/RTX_V81MMF.a"   src="CMSIS/RTOS2/RTX/Source"/>
       </files>
     </component>
     <component Cclass="CMSIS" Cgroup="RTOS2" Csub="Keil RTX5" Cvariant="Library_NS" Cversion="5.5.4" Capiversion="2.1.3" condition="RTOS2 RTX5 NS">
@@ -2492,17 +2584,19 @@ and 8-bit Java bytecodes in Jazelle state.
 
         <!-- RTX libraries (CPU and Compiler dependent) -->
         <!-- ARMCC -->
-        <file category="library" condition="ARMCC ARMv8-MBL LE"      name="CMSIS/RTOS2/RTX/Library/ARM/RTX_V8MBN.lib"   src="CMSIS/RTOS2/RTX/Source"/>
-        <file category="library" condition="ARMCC ARMv8-MML NOFP LE" name="CMSIS/RTOS2/RTX/Library/ARM/RTX_V8MMN.lib"   src="CMSIS/RTOS2/RTX/Source"/>
-        <file category="library" condition="ARMCC ARMv8-MML FP LE"   name="CMSIS/RTOS2/RTX/Library/ARM/RTX_V8MMFN.lib"  src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="ARMCC ARMv8-MBL LE"       name="CMSIS/RTOS2/RTX/Library/ARM/RTX_V8MBN.lib"   src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="ARMCC ARMv8-MML NOFP LE"  name="CMSIS/RTOS2/RTX/Library/ARM/RTX_V8MMN.lib"   src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="ARMCC ARMv8-MML FP LE"    name="CMSIS/RTOS2/RTX/Library/ARM/RTX_V8MMFN.lib"  src="CMSIS/RTOS2/RTX/Source"/>
         <!-- GCC -->
-        <file category="library" condition="GCC ARMv8-MBL LE"        name="CMSIS/RTOS2/RTX/Library/GCC/libRTX_V8MBN.a"  src="CMSIS/RTOS2/RTX/Source"/>
-        <file category="library" condition="GCC ARMv8-MML NOFP LE"   name="CMSIS/RTOS2/RTX/Library/GCC/libRTX_V8MMN.a"  src="CMSIS/RTOS2/RTX/Source"/>
-        <file category="library" condition="GCC ARMv8-MML FP LE"     name="CMSIS/RTOS2/RTX/Library/GCC/libRTX_V8MMFN.a" src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="GCC ARMv8-MBL LE"         name="CMSIS/RTOS2/RTX/Library/GCC/libRTX_V8MBN.a"  src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="GCC ARMv8-MML NOFP LE"    name="CMSIS/RTOS2/RTX/Library/GCC/libRTX_V8MMN.a"  src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="GCC ARMv8-MML FP LE"      name="CMSIS/RTOS2/RTX/Library/GCC/libRTX_V8MMFN.a" src="CMSIS/RTOS2/RTX/Source"/>
         <!-- IAR -->
-        <file category="library" condition="IARCC ARMv8-MBL LE"      name="CMSIS/RTOS2/RTX/Library/IAR/RTX_V8MBN.a"     src="CMSIS/RTOS2/RTX/Source"/>
-        <file category="library" condition="IARCC ARMv8-MML NOFP LE" name="CMSIS/RTOS2/RTX/Library/IAR/RTX_V8MMN.a"     src="CMSIS/RTOS2/RTX/Source"/>
-        <file category="library" condition="IARCC ARMv8-MML FP LE"   name="CMSIS/RTOS2/RTX/Library/IAR/RTX_V8MMFN.a"    src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="IARCC ARMv8-MBL LE"       name="CMSIS/RTOS2/RTX/Library/IAR/RTX_V8MBN.a"     src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="IARCC ARMv8-MML NOFP LE"  name="CMSIS/RTOS2/RTX/Library/IAR/RTX_V8MMN.a"     src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="IARCC ARMv8-MML FP LE"    name="CMSIS/RTOS2/RTX/Library/IAR/RTX_V8MMFN.a"    src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="IARCC ARMv81-MML NOFP LE" name="CMSIS/RTOS2/RTX/Library/IAR/RTX_V81MMN.a"    src="CMSIS/RTOS2/RTX/Source"/>
+        <file category="library" condition="IARCC ARMv81-MML FP LE"   name="CMSIS/RTOS2/RTX/Library/IAR/RTX_V81MMFN.a"   src="CMSIS/RTOS2/RTX/Source"/>
       </files>
     </component>
     <component Cclass="CMSIS" Cgroup="RTOS2" Csub="Keil RTX5" Cvariant="Source" Cversion="5.5.4" Capiversion="2.1.3" condition="RTOS2 RTX5">

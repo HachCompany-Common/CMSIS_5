@@ -21,8 +21,8 @@
  * Title:        arm_nnfunctions.h
  * Description:  Public header file for CMSIS NN Library
  *
- * $Date:        14 February 2022
- * $Revision:    V.8.0.1
+ * $Date:        19 April 2022
+ * $Revision:    V.9.0.0
  *
  * Target Processor:  Cortex-M CPUs
  * -------------------------------------------------------------------- */
@@ -50,6 +50,15 @@
    * types including 8-bit integers (q7_t) and 16-bit integers (q15_t). The descrition of the
    * kernels are included in the function description. The implementation details are also
    * described in this paper [1].
+   *
+   * Supported Processors
+   * -------
+   * CMSIS-NN targets Cortex-M processors with typically three different implementations for each function. Each
+   * targets a different group of processors.
+   *  - Processors without SIMD capability (e.g, Cortex-M0)
+   *  - Processors with DSP extention (e.g Cortex-M4)
+   *  - Processors with MVE extension (e.g Cortex-M55)
+   * The right implementation is picked through feature flags and the user usually does not have to explicit set it.
    *
    * Function Classification
    * --------
@@ -1190,13 +1199,13 @@ arm_status arm_depthwise_conv_s16(const cmsis_nn_context *ctx,
                                   const cmsis_nn_dw_conv_params *dw_conv_params,
                                   const cmsis_nn_per_channel_quant_params *quant_params,
                                   const cmsis_nn_dims *input_dims,
-                                  const q15_t *input,
+                                  const q15_t *input_data,
                                   const cmsis_nn_dims *filter_dims,
-                                  const q7_t *kernel,
+                                  const q7_t *filter_data,
                                   const cmsis_nn_dims *bias_dims,
-                                  const int64_t *bias,
+                                  const int64_t *bias_data,
                                   const cmsis_nn_dims *output_dims,
-                                  q15_t *output);
+                                  q15_t *output_data);
 
 /**
  * @brief Optimized s8 depthwise convolution function for 3x3 kernel size with some constraints on
@@ -1985,14 +1994,14 @@ arm_status arm_max_pool_s8(const cmsis_nn_context *ctx,
  * @param[in]      pool_params    Pooling parameters
  * @param[in]      input_dims     Input (activation) tensor dimensions. Format: [H, W, C_IN]
  *                                Argument 'N' is not used.
- * @param[in]      input_data     Input (activation) data pointer. The input tensor must not
+ * @param[in]      src            Input (activation) data pointer. The input tensor must not
  *                                overlap with the output tensor. Data type: int16
  * @param[in]      filter_dims    Filter tensor dimensions. Format: [H, W]
  *                                Argument N and C are not used.
  * @param[in]      output_dims    Output tensor dimensions. Format: [H, W, C_OUT]
  *                                Argument N is not used.
  *                                C_OUT equals C_IN.
- * @param[in, out] output_data    Output data pointer. Data type: int16
+ * @param[in, out] dst            Output data pointer. Data type: int16
  * @return                        The function returns
  *                                    <code>ARM_MATH_SUCCESS</code> - Successful operation
  *
@@ -2070,7 +2079,6 @@ void arm_softmax_q15(const q15_t *vec_in, const uint16_t dim_vec, q15_t *p_out);
  * @note Supported framework: TensorFlow Lite micro (bit-accurate)
  *
  */
-
 void arm_softmax_s8(const int8_t *input,
                     const int32_t num_rows,
                     const int32_t row_size,
@@ -2078,6 +2086,57 @@ void arm_softmax_s8(const int8_t *input,
                     const int32_t shift,
                     const int32_t diff_min,
                     int8_t *output);
+
+/**
+ * @brief S8 to s16 softmax function
+ * @param[in]  input     Pointer to the input tensor
+ * @param[in]  num_rows  Number of rows in the input tensor
+ * @param[in]  row_size  Number of elements in each input row
+ * @param[in]  mult      Input quantization multiplier
+ * @param[in]  shift     Input quantization shift within the range [0, 31]
+ * @param[in]  diff_min  Minimum difference with max in row. Used to check if
+ *                       the quantized exponential operation can be performed
+ * @param[out] output    Pointer to the output tensor
+ *
+ * @note Supported framework: TensorFlow Lite micro (bit-accurate)
+ *
+ */
+void arm_softmax_s8_s16(const int8_t *input,
+                        const int32_t num_rows,
+                        const int32_t row_size,
+                        const int32_t mult,
+                        const int32_t shift,
+                        const int32_t diff_min,
+                        int16_t *output);
+
+/**
+ * @brief S16 softmax function
+ * @param[in]  input           Pointer to the input tensor
+ * @param[in]  num_rows        Number of rows in the input tensor
+ * @param[in]  row_size        Number of elements in each input row
+ * @param[in]  mult            Input quantization multiplier
+ * @param[in]  shift           Input quantization shift within the range [0, 31]
+ * @param[in]  softmax_params  Softmax s16 layer parameters with two pointers to LUTs speficied below.
+ *                             For indexing the high 9 bits are used and 7 remaining for interpolation.
+ *                             That means 512 entries for the 9-bit indexing and 1 extra for interpolation, i.e. 513
+ *                             values for each LUT.
+ *                             - Lookup table for exp(x), where x uniform distributed between [-10.0 , 0.0]
+ *                             - Lookup table for 1 / (1 + x), where x uniform distributed between [0.0 , 1.0]
+ * @param[out] output          Pointer to the output tensor
+ * @return                        The function returns
+ *                                    <code>ARM_MATH_ARGUMENT_ERROR</code> if LUTs are NULL
+ *                                    <code>ARM_MATH_SUCCESS</code> - Successful operation
+ *
+ * @note Supported framework: TensorFlow Lite micro (bit-accurate)
+ *
+ */
+arm_status arm_softmax_s16(const int16_t *input,
+                           const int32_t num_rows,
+                           const int32_t row_size,
+                           const int32_t mult,
+                           const int32_t shift,
+                           const cmsis_nn_softmax_lut_s16 *softmax_params,
+                           int16_t *output);
 
 /**
  * @brief U8 softmax function
@@ -2371,7 +2430,7 @@ void arm_concatenation_s8_w(const int8_t *input,
  */
 
 /**
- * @brief s8 SVDF function
+ * @brief s8 SVDF function with 8 bit state tensor and 8 bit time weights
  *
  * @param[in]   input_ctx Temporary scratch buffer
  * @param[in]   output_ctx Temporary output scratch buffer
@@ -2408,15 +2467,63 @@ arm_status arm_svdf_s8(const cmsis_nn_context *input_ctx,
                        const cmsis_nn_dims *input_dims,
                        const q7_t *input_data,
                        const cmsis_nn_dims *state_dims,
-                       q15_t *state_data,
+                       q7_t *state_data,
                        const cmsis_nn_dims *weights_feature_dims,
                        const q7_t *weights_feature_data,
                        const cmsis_nn_dims *weights_time_dims,
-                       const q15_t *weights_time_data,
+                       const q7_t *weights_time_data,
                        const cmsis_nn_dims *bias_dims,
                        const q31_t *bias_data,
                        const cmsis_nn_dims *output_dims,
                        q7_t *output_data);
+
+/**
+ * @brief s8 SVDF function with 16 bit state tensor and 16 bit time weights
+ *
+ * @param[in]   input_ctx Temporary scratch buffer
+ * @param[in]   output_ctx Temporary output scratch buffer
+ * @param[in]   svdf_params SVDF Parameters
+ *              Range of svdf_params->input_offset  : [-128, 127]
+ *              Range of svdf_params->output_offset  : [-128, 127]
+ * @param[in]   input_quant_params Input quantization parameters
+ * @param[in]   output_quant_params Output quantization parameters
+ * @param[in]   input_dims Input tensor dimensions
+ * @param[in]   input_data Pointer to input tensor
+ * @param[in]   state_dims State tensor dimensions
+ * @param[in]   state_data Pointer to state tensor
+ * @param[in]   weights_feature_dims Weights (feature) tensor dimensions
+ * @param[in]   weights_feature_data Pointer to the weights (feature) tensor
+ * @param[in]   weights_time_dims Weights (time) tensor dimensions
+ * @param[in]   weights_time_data Pointer to the weights (time) tensor
+ * @param[in]   bias_dims Bias tensor dimensions
+ * @param[in]   bias_data Pointer to bias tensor
+ * @param[in]   output_dims Output tensor dimensions
+ * @param[out]  output_data Pointer to the output tensor
+ *
+ * @return     The function returns <code>ARM_MATH_SUCCESS</code>
+ *
+ * @details
+ *    1. Supported framework: TensorFlow Lite micro
+ *    2. q7 is used as data type eventhough it is s8 data. It is done so to be consistent with existing APIs.
+ *
+ */
+arm_status arm_svdf_state_s16_s8(const cmsis_nn_context *input_ctx,
+                                 const cmsis_nn_context *output_ctx,
+                                 const cmsis_nn_svdf_params *svdf_params,
+                                 const cmsis_nn_per_tensor_quant_params *input_quant_params,
+                                 const cmsis_nn_per_tensor_quant_params *output_quant_params,
+                                 const cmsis_nn_dims *input_dims,
+                                 const q7_t *input_data,
+                                 const cmsis_nn_dims *state_dims,
+                                 q15_t *state_data,
+                                 const cmsis_nn_dims *weights_feature_dims,
+                                 const q7_t *weights_feature_data,
+                                 const cmsis_nn_dims *weights_time_dims,
+                                 const q15_t *weights_time_data,
+                                 const cmsis_nn_dims *bias_dims,
+                                 const q31_t *bias_data,
+                                 const cmsis_nn_dims *output_dims,
+                                 q7_t *output_data);
 
 #ifdef __cplusplus
 }

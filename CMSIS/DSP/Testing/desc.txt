@@ -16,6 +16,7 @@ group Root {
 
               Pattern INPUT1_F64_ID : Input1_f64.txt 
               Pattern INPUTNEW1_F64_ID : InputNew1_f64.txt 
+              Pattern INPUTNEW2_F64_ID : InputNew2_f64.txt 
 
               Pattern INPUT2_F64_ID : Input2_f64.txt 
               Pattern MAXINDEXES_S16_ID : MaxIndexes1_s16.txt
@@ -51,6 +52,8 @@ group Root {
 
               Pattern ABSMININDEXES_S16_ID : AbsMinIndexes27_s16.txt
               Pattern ABSMINVALS_F64_ID : AbsMinVals27_f64.txt
+
+              Pattern MSE_F64_ID : MSEVals28_f64.txt
 
 
               Output  OUT_F64_ID : Output
@@ -122,6 +125,11 @@ group Root {
                 Test nb=2n   arm_absmin_no_idx_f64:test_absmin_no_idx_f64
                 Test nb=2n+1 arm_absmin_no_idx_f64:test_absmin_no_idx_f64
 
+                Test nb=2    arm_mse_f64:test_mse_f64
+                Test nb=2n   arm_mse_f64:test_mse_f64
+                Test nb=2n+1 arm_mse_f64:test_mse_f64
+                Test long    arm_mse_f64:test_mse_f64
+
 
               }
 
@@ -133,6 +141,7 @@ group Root {
 
               Pattern INPUT1_F32_ID : Input1_f32.txt 
               Pattern INPUTNEW1_F32_ID : InputNew1_f32.txt 
+              Pattern INPUTNEW2_F32_ID : InputNew2_f32.txt
 
               Pattern INPUT2_F32_ID : Input2_f32.txt 
               Pattern MAXINDEXES_S16_ID : MaxIndexes1_s16.txt
@@ -168,6 +177,8 @@ group Root {
 
               Pattern ABSMININDEXES_S16_ID : AbsMinIndexes27_s16.txt
               Pattern ABSMINVALS_F32_ID : AbsMinVals27_f32.txt
+
+              Pattern MSE_F32_ID : MSEVals28_f32.txt
 
 
               Output  OUT_F32_ID : Output
@@ -231,13 +242,18 @@ group Root {
                 Test nb=4n   arm_min_no_idx_f32:test_min_no_idx_f32
                 Test nb=4n+1 arm_min_no_idx_f32:test_min_no_idx_f32
 
-                Test nb=2    arm_absmax_no_idx_f32:test_absmax_no_idx_f32
-                Test nb=2n   arm_absmax_no_idx_f32:test_absmax_no_idx_f32
-                Test nb=2n+1 arm_absmax_no_idx_f32:test_absmax_no_idx_f32
+                Test nb=3    arm_absmax_no_idx_f32:test_absmax_no_idx_f32
+                Test nb=4n   arm_absmax_no_idx_f32:test_absmax_no_idx_f32
+                Test nb=4n+1 arm_absmax_no_idx_f32:test_absmax_no_idx_f32
 
-                Test nb=2    arm_absmin_no_idx_f32:test_absmin_no_idx_f32
-                Test nb=2n   arm_absmin_no_idx_f32:test_absmin_no_idx_f32
-                Test nb=2n+1 arm_absmin_no_idx_f32:test_absmin_no_idx_f32
+                Test nb=3    arm_absmin_no_idx_f32:test_absmin_no_idx_f32
+                Test nb=4n   arm_absmin_no_idx_f32:test_absmin_no_idx_f32
+                Test nb=4n+1 arm_absmin_no_idx_f32:test_absmin_no_idx_f32
+
+                Test nb=3    arm_mse_f32:test_mse_f32
+                Test nb=4n   arm_mse_f32:test_mse_f32
+                Test nb=4n+1 arm_mse_f32:test_mse_f32
+                Test long    arm_mse_f32:test_mse_f32
 
 
               }
@@ -252,6 +268,7 @@ group Root {
 
               Pattern INPUT1_Q31_ID : Input1_q31.txt 
               Pattern INPUTNEW1_Q31_ID : InputNew1_q31.txt 
+              Pattern INPUTNEW2_Q31_ID : InputNew2_q31.txt 
 
               Pattern INPUT2_Q31_ID : Input2_q31.txt 
               Pattern MAXINDEXES_S16_ID : MaxIndexes1_s16.txt
@@ -269,6 +286,8 @@ group Root {
 
               Pattern ABSMININDEXES_S16_ID : AbsMinIndexes9_s16.txt
               Pattern ABSMINVALS_Q31_ID : AbsMinVals9_q31.txt
+
+              Pattern MSE_Q31_ID : MSEVals10_q31.txt
 
               Output  OUT_Q31_ID : Output
               Output  OUT_Q63_ID : Output
@@ -320,13 +339,18 @@ group Root {
                 Test nb=4n   arm_min_no_idx_q31:test_min_no_idx_q31
                 Test nb=4n+1 arm_min_no_idx_q31:test_min_no_idx_q31
 
-                Test nb=2    arm_absmax_no_idx_q31:test_absmax_no_idx_q31
-                Test nb=2n   arm_absmax_no_idx_q31:test_absmax_no_idx_q31
-                Test nb=2n+1 arm_absmax_no_idx_q31:test_absmax_no_idx_q31
+                Test nb=3    arm_absmax_no_idx_q31:test_absmax_no_idx_q31
+                Test nb=4n   arm_absmax_no_idx_q31:test_absmax_no_idx_q31
+                Test nb=4n+1 arm_absmax_no_idx_q31:test_absmax_no_idx_q31
 
-                Test nb=2    arm_absmin_no_idx_q31:test_absmin_no_idx_q31
-                Test nb=2n   arm_absmin_no_idx_q31:test_absmin_no_idx_q31
-                Test nb=2n+1 arm_absmin_no_idx_q31:test_absmin_no_idx_q31
+                Test nb=3    arm_absmin_no_idx_q31:test_absmin_no_idx_q31
+                Test nb=4n   arm_absmin_no_idx_q31:test_absmin_no_idx_q31
+                Test nb=4n+1 arm_absmin_no_idx_q31:test_absmin_no_idx_q31
+
+                Test nb=3    arm_mse_q31:test_mse_q31
+                Test nb=4n   arm_mse_q31:test_mse_q31
+                Test nb=4n+1 arm_mse_q31:test_mse_q31
+                Test long    arm_mse_q31:test_mse_q31
 
               }
 
@@ -338,6 +362,7 @@ group Root {
 
               Pattern INPUT1_Q15_ID : Input1_q15.txt 
               Pattern INPUTNEW1_Q15_ID : InputNew1_q15.txt
+              Pattern INPUTNEW2_Q15_ID : InputNew2_q15.txt
 
               Pattern INPUT2_Q15_ID : Input2_q15.txt 
               Pattern MAXINDEXES_S16_ID : MaxIndexes1_s16.txt
@@ -356,7 +381,7 @@ group Root {
               Pattern ABSMININDEXES_S16_ID : AbsMinIndexes9_s16.txt
               Pattern ABSMINVALS_Q15_ID : AbsMinVals9_q15.txt
 
-
+              Pattern MSE_Q15_ID : MSEVals10_q15.txt
 
               Output  OUT_Q15_ID : Output
               Output  OUT_Q63_ID : Output
@@ -392,29 +417,34 @@ group Root {
                 Test nb=8n   arm_var_q15:test_var_q15
                 Test nb=8n+1 arm_var_q15:test_var_q15
 
-                Test nb=3    arm_absmax_q15:test_absmax_q15
-                Test nb=4n   arm_absmax_q15:test_absmax_q15
-                Test nb=4n+1 arm_absmax_q15:test_absmax_q15
+                Test nb=7    arm_absmax_q15:test_absmax_q15
+                Test nb=8n   arm_absmax_q15:test_absmax_q15
+                Test nb=8n+1 arm_absmax_q15:test_absmax_q15
 
-                Test nb=3    arm_absmin_q15:test_absmin_q15
-                Test nb=4n   arm_absmin_q15:test_absmin_q15
-                Test nb=4n+1 arm_absmin_q15:test_absmin_q15
+                Test nb=7    arm_absmin_q15:test_absmin_q15
+                Test nb=8n   arm_absmin_q15:test_absmin_q15
+                Test nb=8n+1 arm_absmin_q15:test_absmin_q15
 
-                Test nb=3    arm_max_no_idx_q15:test_max_no_idx_q15
-                Test nb=4n   arm_max_no_idx_q15:test_max_no_idx_q15
-                Test nb=4n+1 arm_max_no_idx_q15:test_max_no_idx_q15
+                Test nb=7    arm_max_no_idx_q15:test_max_no_idx_q15
+                Test nb=8n   arm_max_no_idx_q15:test_max_no_idx_q15
+                Test nb=8n+1 arm_max_no_idx_q15:test_max_no_idx_q15
 
-                Test nb=3    arm_min_no_idx_q15:test_min_no_idx_q15
-                Test nb=4n   arm_min_no_idx_q15:test_min_no_idx_q15
-                Test nb=4n+1 arm_min_no_idx_q15:test_min_no_idx_q15
+                Test nb=7    arm_min_no_idx_q15:test_min_no_idx_q15
+                Test nb=8n   arm_min_no_idx_q15:test_min_no_idx_q15
+                Test nb=8n+1 arm_min_no_idx_q15:test_min_no_idx_q15
 
-                Test nb=2    arm_absmax_no_idx_q15:test_absmax_no_idx_q15
-                Test nb=2n   arm_absmax_no_idx_q15:test_absmax_no_idx_q15
-                Test nb=2n+1 arm_absmax_no_idx_q15:test_absmax_no_idx_q15
+                Test nb=7    arm_absmax_no_idx_q15:test_absmax_no_idx_q15
+                Test nb=8n   arm_absmax_no_idx_q15:test_absmax_no_idx_q15
+                Test nb=8n+1 arm_absmax_no_idx_q15:test_absmax_no_idx_q15
 
-                Test nb=2    arm_absmin_no_idx_q15:test_absmin_no_idx_q15
-                Test nb=2n   arm_absmin_no_idx_q15:test_absmin_no_idx_q15
-                Test nb=2n+1 arm_absmin_no_idx_q15:test_absmin_no_idx_q15
+                Test nb=7    arm_absmin_no_idx_q15:test_absmin_no_idx_q15
+                Test nb=8n   arm_absmin_no_idx_q15:test_absmin_no_idx_q15
+                Test nb=8n+1 arm_absmin_no_idx_q15:test_absmin_no_idx_q15
+
+                Test nb=7    arm_mse_q15:test_mse_q15
+                Test nb=8n   arm_mse_q15:test_mse_q15
+                Test nb=8n+1 arm_mse_q15:test_mse_q15
+                Test long    arm_mse_q15:test_mse_q15
 
               }
 
@@ -426,6 +456,7 @@ group Root {
 
               Pattern INPUT1_Q7_ID : Input1_q7.txt 
               Pattern INPUTNEW1_Q7_ID : InputNew1_q7.txt
+              Pattern INPUTNEW2_Q7_ID : InputNew2_q7.txt
 
               Pattern INPUT2_Q7_ID : Input2_q7.txt 
               Pattern MAXINDEXES_S16_ID : MaxIndexes1_s16.txt
@@ -445,6 +476,8 @@ group Root {
 
               Pattern ABSMAXINDEXMAX_Q7_ID : InputAbsMaxIndexMax8_q7.txt
               Pattern ABSMININDEXMAX_Q7_ID : InputAbsMinIndexMax9_q7.txt
+              
+              Pattern MSE_Q7_ID : MSEVals10_q7.txt
 
 
               //Pattern RMSVALS_Q7_ID : RmsVals5_q7.txt
@@ -476,32 +509,37 @@ group Root {
                 Test big index  arm_max_q7:test_max_q7
                 Test big index  arm_min_q7:test_min_q7
 
-                Test nb=3    arm_absmax_q7:test_absmax_q7
-                Test nb=4n   arm_absmax_q7:test_absmax_q7
-                Test nb=4n+1 arm_absmax_q7:test_absmax_q7
+                Test nb=15    arm_absmax_q7:test_absmax_q7
+                Test nb=16n   arm_absmax_q7:test_absmax_q7
+                Test nb=16n+1 arm_absmax_q7:test_absmax_q7
 
-                Test nb=3    arm_absmin_q7:test_absmin_q7
-                Test nb=4n   arm_absmin_q7:test_absmin_q7
-                Test nb=4n+1 arm_absmin_q7:test_absmin_q7
+                Test nb=15    arm_absmin_q7:test_absmin_q7
+                Test nb=16n   arm_absmin_q7:test_absmin_q7
+                Test nb=16n+1 arm_absmin_q7:test_absmin_q7
 
                 Test big index  arm_absmax_q7:test_absmax_q7
                 Test big index  arm_absmin_q7:test_absmin_q7
 
-                Test nb=3    arm_max_no_idx_q7:test_max_no_idx_q7
-                Test nb=4n   arm_max_no_idx_q7:test_max_no_idx_q7
-                Test nb=4n+1 arm_max_no_idx_q7:test_max_no_idx_q7
+                Test nb=15    arm_max_no_idx_q7:test_max_no_idx_q7
+                Test nb=16n   arm_max_no_idx_q7:test_max_no_idx_q7
+                Test nb=16n+1 arm_max_no_idx_q7:test_max_no_idx_q7
 
-                Test nb=3    arm_min_no_idx_q7:test_min_no_idx_q7
-                Test nb=4n   arm_min_no_idx_q7:test_min_no_idx_q7
-                Test nb=4n+1 arm_min_no_idx_q7:test_min_no_idx_q7
+                Test nb=15    arm_min_no_idx_q7:test_min_no_idx_q7
+                Test nb=16n   arm_min_no_idx_q7:test_min_no_idx_q7
+                Test nb=16n+1 arm_min_no_idx_q7:test_min_no_idx_q7
 
-                Test nb=2    arm_absmax_no_idx_q7:test_absmax_no_idx_q7
-                Test nb=2n   arm_absmax_no_idx_q7:test_absmax_no_idx_q7
-                Test nb=2n+1 arm_absmax_no_idx_q7:test_absmax_no_idx_q7
+                Test nb=15    arm_absmax_no_idx_q7:test_absmax_no_idx_q7
+                Test nb=16n   arm_absmax_no_idx_q7:test_absmax_no_idx_q7
+                Test nb=16n+1 arm_absmax_no_idx_q7:test_absmax_no_idx_q7
 
-                Test nb=2    arm_absmin_no_idx_q7:test_absmin_no_idx_q7
-                Test nb=2n   arm_absmin_no_idx_q7:test_absmin_no_idx_q7
-                Test nb=2n+1 arm_absmin_no_idx_q7:test_absmin_no_idx_q7
+                Test nb=15    arm_absmin_no_idx_q7:test_absmin_no_idx_q7
+                Test nb=16n   arm_absmin_no_idx_q7:test_absmin_no_idx_q7
+                Test nb=16n+1 arm_absmin_no_idx_q7:test_absmin_no_idx_q7
+
+                Test nb=15    arm_mse_q7:test_mse_q7
+                Test nb=16n   arm_mse_q7:test_mse_q7
+                Test nb=16n+1 arm_mse_q7:test_mse_q7
+                Test long     arm_mse_q7:test_mse_q7
 
               }
 
@@ -1755,12 +1793,14 @@ group Root {
               Pattern SQRTINPUT1_F32_ID : SqrtInput1_f32.txt
               Pattern LOGINPUT1_F32_ID : LogInput1_f32.txt
               Pattern EXPINPUT1_F32_ID : ExpInput1_f32.txt
+              Pattern ATAN2INPUT1_F32_ID : Atan2Input1_f32.txt 
               
               Pattern COS1_F32_ID : Cos1_f32.txt 
               Pattern SIN1_F32_ID : Sin1_f32.txt 
               Pattern SQRT1_F32_ID : Sqrt1_f32.txt 
               Pattern LOG1_F32_ID : Log1_f32.txt 
               Pattern EXP1_F32_ID : Exp1_f32.txt 
+              Pattern ATAN2_F32_ID : Atan2Ref1_f32.txt
 
               Output  OUT_F32_ID : Output
 
@@ -1776,6 +1816,7 @@ group Root {
                 test_vexp_f32 nb=3:test_vexp_f32
                 test_vexp_f32 nb=4n:test_vexp_f32
                 test_vexp_f32 nb=4n+1:test_vexp_f32
+                test_atan2_scalar_f32:test_atan2_scalar_f32
               }
           }
 
@@ -1786,6 +1827,10 @@ group Root {
               Pattern ANGLES1_Q31_ID : Angles1_q31.txt
               Pattern SQRTINPUT1_Q31_ID : SqrtInput1_q31.txt
               Pattern LOGINPUT1_Q31_ID : LogInput1_q31.txt
+              
+              Pattern ATAN2INPUT1_Q31_ID : Atan2Input1_q31.txt 
+              Pattern ATAN2_Q31_ID : Atan2Ref1_q31.txt
+              
               Pattern COS1_Q31_ID : Cos1_q31.txt 
               Pattern SIN1_Q31_ID : Sin1_q31.txt 
               Pattern SQRT1_Q31_ID : Sqrt1_q31.txt 
@@ -1810,6 +1855,7 @@ group Root {
                 test_vlog_q31 nb=3:test_vlog_q31
                 test_vlog_q31 nb=4n:test_vlog_q31
                 test_vlog_q31 nb=4n+1:test_vlog_q31
+                test_atan2_scalar_q31:test_atan2_scalar_q31
               }
           }
 
@@ -1831,6 +1877,9 @@ group Root {
               Pattern DIVISION_VALUE_Q15_ID : DivisionValue1_q15.txt
               Pattern DIVISION_SHIFT_S16_ID : DivisionShift1_s16.txt
 
+              Pattern ATAN2INPUT1_Q15_ID : Atan2Input1_q15.txt 
+              Pattern ATAN2_Q15_ID : Atan2Ref1_q15.txt
+
               Output  OUT_Q15_ID : Output
               Output  SHIFT_S16_ID : Output
 
@@ -1843,6 +1892,7 @@ group Root {
                 test_vlog_q15 nb=3:test_vlog_q15
                 test_vlog_q15 nb=4n:test_vlog_q15
                 test_vlog_q15 nb=4n+1:test_vlog_q15
+                test_atan2_scalar_q15:test_atan2_scalar_q15
               }
           }
         }
