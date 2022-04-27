@@ -25,10 +25,10 @@ var NAVTREEINDEX =
 [
 "ChangeLog_pg.html",
 "group__CmplxByCmplxMult.html#ga0db9aa8b946f424f75a24662357d02ff",
-"group__MatrixInit.html#ga48a5e5d37e1f062cc57fcfaf683343cc",
-"group__inv__clarke.html#ga1a73ce96f94b2124d02426690e587197",
-"structarm__dct4__instance__f32.html#ad4cd7c85eea3f7c5fff4630bbd979e6a",
-"structarm__mfcc__instance__q31.html"
+"group__MatrixComplexTrans.html#ga76bb8262330184e9824594d5e0efb01f",
+"group__groupFastMath.html",
+"structarm__cfft__radix4__instance__q31.html#a3b229432d381b0a511a9cdbe3aa74e78",
+"structarm__mfcc__instance__f32.html#acfacbcf8d50f063823b8097880bc9485"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
