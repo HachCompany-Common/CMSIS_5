@@ -1,3 +1,3 @@
 function writeFooter()  {
-    document.write('Generated on Wed Apr 27 2022 20:06:09 for CMSIS-DAP Version 2.1.1 by Arm Ltd. All rights reserved.');
+    document.write('Generated on Thu Jun  2 2022 13:42:02 for CMSIS-DAP Version 2.1.1 by Arm Ltd. All rights reserved.');
 };
