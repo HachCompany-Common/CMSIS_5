@@ -5,11 +5,17 @@
   <description>CMSIS (Common Microcontroller Software Interface Standard)</description>
   <vendor>ARM</vendor>
   <!-- <license>license.txt</license> -->
-  <url>http://www.keil.com/pack/</url>
+  <url>https://www.keil.com/pack/</url>
 
   <releases>
-    <release version="5.9.0">
+    <release version="5.9.1">
       Active development ...
+      CMSIS-NN: 4.0.0 (see revision history for details)
+       - Changed return types of all API's
+       - Support for int16 average pooling DSP implementation
+       - Support for DSP extension optimization for int16 depthwise_conv
+    </release>
+    <release version="5.9.0" date="2022-05-02">
       CMSIS-Core(M): 5.6.0
        - Arm Cortex-M85 cpu support
        - Arm China STAR-MC1 cpu support
@@ -2227,7 +2233,7 @@ and 8-bit Java bytecodes in Jazelle state.
     </component>
 
     <!-- CMSIS-DSP component -->
-    <component Cclass="CMSIS" Cgroup="DSP" Cvariant="Source"  Cversion="1.10.0" isDefaultVariant="true" condition="CMSIS DSP">
+    <component Cclass="CMSIS" Cgroup="DSP" Cvariant="Source"  Cversion="1.11.0" isDefaultVariant="true" condition="CMSIS DSP">
       <description>CMSIS-DSP Library for Cortex-M, SC000, and SC300</description>
       <files>
         <!-- CPU independent -->
@@ -2306,6 +2312,8 @@ and 8-bit Java bytecodes in Jazelle state.
         <file category="source" name="CMSIS/NN/Source/ConvolutionFunctions/arm_convolve_1x1_s8_fast.c"/>
         <file category="source" name="CMSIS/NN/Source/ConvolutionFunctions/arm_depthwise_conv_s8.c"/>
         <file category="source" name="CMSIS/NN/Source/ConvolutionFunctions/arm_depthwise_conv_s16.c"/>
+        <file category="source" name="CMSIS/NN/Source/ConvolutionFunctions/arm_depthwise_conv_fast_s16.c"/>
+        <file category="source" name="CMSIS/NN/Source/ConvolutionFunctions/arm_depthwise_conv_wrapper_s16.c"/>
         <file category="source" name="CMSIS/NN/Source/ConvolutionFunctions/arm_convolve_fast_s16.c"/>
         <file category="source" name="CMSIS/NN/Source/ConvolutionFunctions/arm_convolve_HWC_q15_fast_nonsquare.c"/>
         <file category="source" name="CMSIS/NN/Source/ConvolutionFunctions/arm_convolve_s8.c"/>

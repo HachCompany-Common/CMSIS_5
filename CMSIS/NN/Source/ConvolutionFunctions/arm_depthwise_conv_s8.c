@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Arm Limited or its affiliates.
+ * Copyright (C) 2010-2022 Arm Limited or its affiliates.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -21,8 +21,8 @@
  * Title:        arm_depthwise_conv_s8.c
  * Description:  s8 version of depthwise convolution.
  *
- * $Date:        30. Dec 2021
- * $Revision:    V.2.7.1
+ * $Date:        9. May 2022
+ * $Revision:    V.3.0.1
  *
  * Target Processor:  Cortex-M CPUs
  *
@@ -40,29 +40,33 @@
  * @{
  */
 
-static void depthwise_conv_s8_mult_4(const int8_t *input,
-                                     const int32_t input_x,
-                                     const int32_t input_y,
-                                     const int32_t input_ch,
-                                     const int8_t *kernel,
-                                     const int32_t output_ch,
-                                     const int32_t ch_mult,
-                                     const int32_t kernel_x,
-                                     const int32_t kernel_y,
-                                     const int32_t pad_x,
-                                     const int32_t pad_y,
-                                     const int32_t stride_x,
-                                     const int32_t stride_y,
-                                     const int32_t *bias,
-                                     int8_t *output,
-                                     const int32_t *output_shift,
-                                     const int32_t *output_mult,
-                                     const int32_t output_x,
-                                     const int32_t output_y,
-                                     const int32_t output_offset,
-                                     const int32_t input_offset,
-                                     const int32_t output_activation_min,
-                                     const int32_t output_activation_max)
+#if !defined(__ARMCC_VERSION)
+__attribute__((optimize("no-unroll-loops")))
+#endif
+static void
+depthwise_conv_s8_mult_4(const int8_t *input,
+                         const int32_t input_x,
+                         const int32_t input_y,
+                         const int32_t input_ch,
+                         const int8_t *kernel,
+                         const int32_t output_ch,
+                         const int32_t ch_mult,
+                         const int32_t kernel_x,
+                         const int32_t kernel_y,
+                         const int32_t pad_x,
+                         const int32_t pad_y,
+                         const int32_t stride_x,
+                         const int32_t stride_y,
+                         const int32_t *bias,
+                         int8_t *output,
+                         const int32_t *output_shift,
+                         const int32_t *output_mult,
+                         const int32_t output_x,
+                         const int32_t output_y,
+                         const int32_t output_offset,
+                         const int32_t input_offset,
+                         const int32_t output_activation_min,
+                         const int32_t output_activation_max)
 {
     for (int32_t in_h = -pad_y, out_h = 0, out_idx = 0; out_h < output_y; in_h += stride_y, ++out_h)
     {
@@ -262,17 +266,17 @@ static void depthwise_conv_s8_generic(const q7_t *input,
  *  Optimization using DSP extension is not available for the generic case where channel multiplier is > 1.
  *
  */
-arm_status arm_depthwise_conv_s8(const cmsis_nn_context *ctx,
-                                 const cmsis_nn_dw_conv_params *dw_conv_params,
-                                 const cmsis_nn_per_channel_quant_params *quant_params,
-                                 const cmsis_nn_dims *input_dims,
-                                 const q7_t *input,
-                                 const cmsis_nn_dims *filter_dims,
-                                 const q7_t *kernel,
-                                 const cmsis_nn_dims *bias_dims,
-                                 const int32_t *bias,
-                                 const cmsis_nn_dims *output_dims,
-                                 q7_t *output)
+arm_cmsis_nn_status arm_depthwise_conv_s8(const cmsis_nn_context *ctx,
+                                          const cmsis_nn_dw_conv_params *dw_conv_params,
+                                          const cmsis_nn_per_channel_quant_params *quant_params,
+                                          const cmsis_nn_dims *input_dims,
+                                          const q7_t *input,
+                                          const cmsis_nn_dims *filter_dims,
+                                          const q7_t *kernel,
+                                          const cmsis_nn_dims *bias_dims,
+                                          const int32_t *bias,
+                                          const cmsis_nn_dims *output_dims,
+                                          q7_t *output)
 {
     const uint16_t dilation_x = dw_conv_params->dilation.w;
     const uint16_t dilation_y = dw_conv_params->dilation.h;
@@ -339,7 +343,7 @@ arm_status arm_depthwise_conv_s8(const cmsis_nn_context *ctx,
     }
 
     /* Return to application */
-    return ARM_MATH_SUCCESS;
+    return ARM_CMSIS_NN_SUCCESS;
 }
 
 /**

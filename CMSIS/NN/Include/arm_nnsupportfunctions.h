@@ -21,8 +21,8 @@
  * Title:        arm_nnsupportfunctions.h
  * Description:  Public header file of support functions for CMSIS NN Library
  *
- * $Date:        19. April 2022
- * $Revision:    V.7.0.1
+ * $Date:        10 May 2022
+ * $Revision:    V.8.1.0
  *
  * Target Processor:  Cortex-M CPUs
  * -------------------------------------------------------------------- */
@@ -56,6 +56,11 @@ extern "C" {
 #define PACK_Q7x4_32x1(v0, v1, v2, v3)                                                                                 \
     ((((int32_t)(v0) << 0) & (int32_t)0x000000FF) | (((int32_t)(v1) << 8) & (int32_t)0x0000FF00) |                     \
      (((int32_t)(v2) << 16) & (int32_t)0x00FF0000) | (((int32_t)(v3) << 24) & (int32_t)0xFF000000))
+
+/**
+ * @brief definition to pack two 16 bit values.
+ */
+#define PACK_Q15x2_32x1(v0, v1) (((int32_t)v0 & (int32_t)0xFFFF) | ((int32_t)v1 << 16))
 
 /**
  * @brief Union for SIMD access of q31/q15/q7 types
@@ -294,11 +299,11 @@ q15_t *arm_nn_mat_mult_kernel_s16(const q7_t *input_a,
  *          sum_col += col_base[i]
  *
  */
-arm_status arm_nn_mat_mul_core_1x_s8(int32_t row_elements,
-                                     const int8_t *row_base,
-                                     const int8_t *col_base,
-                                     int32_t *const sum_col,
-                                     int32_t *const output);
+arm_cmsis_nn_status arm_nn_mat_mul_core_1x_s8(int32_t row_elements,
+                                              const int8_t *row_base,
+                                              const int8_t *col_base,
+                                              int32_t *const sum_col,
+                                              int32_t *const output);
 
 /**
  * @brief Matrix-multiplication with requantization & activation function for four rows and one column
@@ -353,22 +358,22 @@ int8_t *arm_nn_mat_mul_core_4x_s8(const int32_t row_elements,
  * @param[in]  activation_min     Minimum value to clamp down the output. Range : int8
  * @param[in]  activation_max     Maximum value to clamp up the output. Range : int8
  *
- * @return     The function returns <code>ARM_MATH_SUCCESS</code>
+ * @return     The function returns <code>ARM_CMSIS_NN_SUCCESS</code>
  *
  */
-arm_status arm_nn_mat_mult_nt_t_s8(const q7_t *lhs,
-                                   const q7_t *rhs,
-                                   const q31_t *bias,
-                                   q7_t *dst,
-                                   const int32_t *dst_multipliers,
-                                   const int32_t *dst_shifts,
-                                   const int32_t lhs_rows,
-                                   const int32_t rhs_rows,
-                                   const int32_t rhs_cols,
-                                   const int32_t lhs_offset,
-                                   const int32_t dst_offset,
-                                   const int32_t activation_min,
-                                   const int32_t activation_max);
+arm_cmsis_nn_status arm_nn_mat_mult_nt_t_s8(const q7_t *lhs,
+                                            const q7_t *rhs,
+                                            const q31_t *bias,
+                                            q7_t *dst,
+                                            const int32_t *dst_multipliers,
+                                            const int32_t *dst_shifts,
+                                            const int32_t lhs_rows,
+                                            const int32_t rhs_rows,
+                                            const int32_t rhs_cols,
+                                            const int32_t lhs_offset,
+                                            const int32_t dst_offset,
+                                            const int32_t activation_min,
+                                            const int32_t activation_max);
 
 /**
  * @brief s8 Vector by Matrix (transposed) multiplication
@@ -390,23 +395,23 @@ arm_status arm_nn_mat_mult_nt_t_s8(const q7_t *lhs,
  * @param[in]      address_offset  Memory position offset for dst. First output is stored at 'dst', the
  *                                 second at 'dst + address_offset' and so on. Default value is typically 1.
  *
- * @return         The function returns <code>ARM_MATH_SUCCESS</code>
+ * @return         The function returns <code>ARM_CMSIS_NN_SUCCESS</code>
  *
  */
-arm_status arm_nn_vec_mat_mult_t_s8(const q7_t *lhs,
-                                    const q7_t *rhs,
-                                    const q31_t *bias,
-                                    q7_t *dst,
-                                    const int32_t lhs_offset,
-                                    const int32_t rhs_offset,
-                                    const int32_t dst_offset,
-                                    const int32_t dst_multiplier,
-                                    const int32_t dst_shift,
-                                    const int32_t rhs_cols,
-                                    const int32_t rhs_rows,
-                                    const int32_t activation_min,
-                                    const int32_t activation_max,
-                                    const int32_t address_offset);
+arm_cmsis_nn_status arm_nn_vec_mat_mult_t_s8(const q7_t *lhs,
+                                             const q7_t *rhs,
+                                             const q31_t *bias,
+                                             q7_t *dst,
+                                             const int32_t lhs_offset,
+                                             const int32_t rhs_offset,
+                                             const int32_t dst_offset,
+                                             const int32_t dst_multiplier,
+                                             const int32_t dst_shift,
+                                             const int32_t rhs_cols,
+                                             const int32_t rhs_rows,
+                                             const int32_t activation_min,
+                                             const int32_t activation_max,
+                                             const int32_t address_offset);
 
 /**
  * @brief s16 Vector by Matrix (transposed) multiplication
@@ -422,19 +427,19 @@ arm_status arm_nn_vec_mat_mult_t_s8(const q7_t *lhs,
  * @param[in]      activation_min  Minimum value to clamp the output to. Range: int16
  * @param[in]      activation_max  Maximum value to clamp the output to. Range: int16
  *
- * @return         The function returns <code>ARM_MATH_SUCCESS</code>
+ * @return         The function returns <code>ARM_CMSIS_NN_SUCCESS</code>
  *
  */
-arm_status arm_nn_vec_mat_mult_t_s16(const q15_t *lhs,
-                                     const q7_t *rhs,
-                                     const q63_t *bias,
-                                     q15_t *dst,
-                                     const int32_t dst_multiplier,
-                                     const int32_t dst_shift,
-                                     const int32_t rhs_cols,
-                                     const int32_t rhs_rows,
-                                     const int32_t activation_min,
-                                     const int32_t activation_max);
+arm_cmsis_nn_status arm_nn_vec_mat_mult_t_s16(const q15_t *lhs,
+                                              const q7_t *rhs,
+                                              const q63_t *bias,
+                                              q15_t *dst,
+                                              const int32_t dst_multiplier,
+                                              const int32_t dst_shift,
+                                              const int32_t rhs_cols,
+                                              const int32_t rhs_rows,
+                                              const int32_t activation_min,
+                                              const int32_t activation_max);
 
 /**
  * @brief s8 Vector by Matrix (transposed) multiplication with s16 output
@@ -454,21 +459,21 @@ arm_status arm_nn_vec_mat_mult_t_s16(const q15_t *lhs,
  * @param[in]      activation_min  Minimum value to clamp the output to. Range: int16
  * @param[in]      activation_max  Maximum value to clamp the output to. Range: int16
  *
- * @return         The function returns <code>ARM_MATH_SUCCESS</code>
+ * @return         The function returns <code>ARM_CMSIS_NN_SUCCESS</code>
  *
  */
-arm_status arm_nn_vec_mat_mult_t_svdf_s8(const q7_t *lhs,
-                                         const q7_t *rhs,
-                                         q15_t *dst,
-                                         const int32_t lhs_offset,
-                                         const int32_t rhs_offset,
-                                         const int32_t scatter_offset,
-                                         const int32_t dst_multiplier,
-                                         const int32_t dst_shift,
-                                         const int32_t rhs_cols,
-                                         const int32_t rhs_rows,
-                                         const int32_t activation_min,
-                                         const int32_t activation_max);
+arm_cmsis_nn_status arm_nn_vec_mat_mult_t_svdf_s8(const q7_t *lhs,
+                                                  const q7_t *rhs,
+                                                  q15_t *dst,
+                                                  const int32_t lhs_offset,
+                                                  const int32_t rhs_offset,
+                                                  const int32_t scatter_offset,
+                                                  const int32_t dst_multiplier,
+                                                  const int32_t dst_shift,
+                                                  const int32_t rhs_cols,
+                                                  const int32_t rhs_rows,
+                                                  const int32_t activation_min,
+                                                  const int32_t activation_max);
 
 /**
  * @brief Depthwise convolution of transposed rhs matrix with 4 lhs matrices. To be used in padded cases where

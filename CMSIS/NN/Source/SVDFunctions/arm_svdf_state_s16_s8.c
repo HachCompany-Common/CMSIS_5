@@ -19,10 +19,10 @@
 /* ----------------------------------------------------------------------
  * Project:      CMSIS NN Library
  * Title:        arm_svdf_s8.c
- * Description:  S8 basic SVDF layer function
+ * Description:  S8 basic SVDF layer function with s16 state tensor
  *
- * $Date:        8 April 2022
- * $Revision:    V.1.0.0
+ * $Date:        4 May 2022
+ * $Revision:    V.2.0.1
  *
  * Target Processor:  Cortex-M processors
  *
@@ -47,23 +47,23 @@
  *
  */
 
-arm_status arm_svdf_state_s16_s8(const cmsis_nn_context *input_ctx,
-                                 const cmsis_nn_context *output_ctx,
-                                 const cmsis_nn_svdf_params *svdf_params,
-                                 const cmsis_nn_per_tensor_quant_params *input_quant_params,
-                                 const cmsis_nn_per_tensor_quant_params *output_quant_params,
-                                 const cmsis_nn_dims *input_dims,
-                                 const q7_t *input_data,
-                                 const cmsis_nn_dims *state_dims,
-                                 q15_t *state_data,
-                                 const cmsis_nn_dims *weights_feature_dims,
-                                 const q7_t *weights_feature_data,
-                                 const cmsis_nn_dims *weights_time_dims,
-                                 const q15_t *weights_time_data,
-                                 const cmsis_nn_dims *bias_dims,
-                                 const q31_t *bias_data,
-                                 const cmsis_nn_dims *output_dims,
-                                 q7_t *output_data)
+arm_cmsis_nn_status arm_svdf_state_s16_s8(const cmsis_nn_context *input_ctx,
+                                          const cmsis_nn_context *output_ctx,
+                                          const cmsis_nn_svdf_params *svdf_params,
+                                          const cmsis_nn_per_tensor_quant_params *input_quant_params,
+                                          const cmsis_nn_per_tensor_quant_params *output_quant_params,
+                                          const cmsis_nn_dims *input_dims,
+                                          const q7_t *input_data,
+                                          const cmsis_nn_dims *state_dims,
+                                          q15_t *state_data,
+                                          const cmsis_nn_dims *weights_feature_dims,
+                                          const q7_t *weights_feature_data,
+                                          const cmsis_nn_dims *weights_time_dims,
+                                          const q15_t *weights_time_data,
+                                          const cmsis_nn_dims *bias_dims,
+                                          const q31_t *bias_data,
+                                          const cmsis_nn_dims *output_dims,
+                                          q7_t *output_data)
 {
     (void)bias_dims;
     (void)state_dims;
@@ -89,46 +89,49 @@ arm_status arm_svdf_state_s16_s8(const cmsis_nn_context *input_ctx,
 
     if (input_ctx->buf == NULL)
     {
-        return ARM_MATH_ARGUMENT_ERROR;
+        return ARM_CMSIS_NN_ARG_ERROR;
     }
     q31_t *buffer_a = (q31_t *)input_ctx->buf;
 
     if (output_ctx->buf == NULL)
     {
-        return ARM_MATH_ARGUMENT_ERROR;
+        return ARM_CMSIS_NN_ARG_ERROR;
     }
     q31_t *buffer_b = (q31_t *)output_ctx->buf;
 
+    // Left shift state
     memmove((q15_t *)state_data,
             (q15_t *)state_data + 1,
             (size_t)((input_batches * feature_batches * time_batches - 1) * (int32_t)sizeof(int16_t)));
 
+    // Matrix multiplication input * feature weight
     for (int i_batch = 0; i_batch < input_batches; i_batch++)
     {
         q15_t *res_ptr = state_data + (time_batches * i_batch * feature_batches) + (time_batches - 1);
         const q7_t *weight = weights_feature_data;
         const q7_t *input = input_data + i_batch * input_height;
 
-        arm_status res = arm_nn_vec_mat_mult_t_svdf_s8(input,
-                                                       weight,
-                                                       res_ptr,
-                                                       -zp_in,
-                                                       0,
-                                                       time_batches,
-                                                       multiplier_in,
-                                                       shift_in,
-                                                       input_height,
-                                                       feature_batches,
-                                                       in_activation_min,
-                                                       in_activation_max);
+        arm_cmsis_nn_status res = arm_nn_vec_mat_mult_t_svdf_s8(input,
+                                                                weight,
+                                                                res_ptr,
+                                                                -zp_in,
+                                                                0,
+                                                                time_batches,
+                                                                multiplier_in,
+                                                                shift_in,
+                                                                input_height,
+                                                                feature_batches,
+                                                                in_activation_min,
+                                                                in_activation_max);
 
-        if (res != ARM_MATH_SUCCESS)
+        if (res != ARM_CMSIS_NN_SUCCESS)
         {
             return res;
         }
     }
 
     {
+        // Matrix multiplication time weight * state tensors
         q31_t *ptr_a = buffer_a;
         const q15_t *v2 = state_data;
         for (int i_batch = 0; i_batch < input_batches; i_batch++)
@@ -140,6 +143,7 @@ arm_status arm_svdf_state_s16_s8(const cmsis_nn_context *input_ctx,
                 *ptr_a = 0;
                 int32_t sum = 0;
 #if defined(ARM_MATH_DSP) && !defined(ARM_MATH_MVEI)
+                // Perform matrix multiplication in blocks of two
                 int j = 0;
                 int32_t block_count = time_batches >> 1;
                 for (int i = 0; i < block_count; i++)
@@ -255,7 +259,7 @@ arm_status arm_svdf_state_s16_s8(const cmsis_nn_context *input_ctx,
     }
 #endif
 
-    return (ARM_MATH_SUCCESS);
+    return (ARM_CMSIS_NN_SUCCESS);
 }
 
 /**
